@@ -1,9 +1,9 @@
-# Python Package Template Project
+# Savant Audio Switch Client
 
-[![image](https://img.shields.io/pypi/v/py-package-template.svg)](https://pypi.org/project/py-package-template/)
-[![Build Status](https://travis-ci.org/AlexIoannides/py-package-template.svg?branch=master)](https://travis-ci.org/AlexIoannides/py-package-template)
+[![image](https://img.shields.io/pypi/v/savantaudio-client.svg)](https://pypi.org/project/savantaudio-client/)
+[![Build Status](https://travis-ci.org/akropp/savantaudio-client.svg?branch=master)](https://travis-ci.org/akropp/savantaudio-client)
 
-The py-template-project package allows users to download the contents of this [GiHub repository](https://github.com/AlexIoannides/py-package-template),  containing a skeleton Python package project to be used as a template for kick-starting development of **any** type of Package; destined for upload to PyPI, or just for local install using Pip. The downloaded package includes the following components to aid rapid development without having to spend time cloning existing set-ups from other projects:
+The savantaudio-client package allows users to download the contents of this [GiHub repository](https://github.com/akropp/savantaudio-client),  containing a skeleton Python package project to be used as a template for kick-starting development of **any** type of Package; destined for upload to PyPI, or just for local install using Pip. The downloaded package includes the following components to aid rapid development without having to spend time cloning existing set-ups from other projects:
 
 - a minimal `setup.py` file;
 - testing with PyTest;
@@ -20,21 +20,21 @@ This is obviously a opinionated view of how a Python package project ought to be
 Install and update using [pip](https://pip.pypa.io/en/stable/quickstart/):
 
 ```bash
-pip3 install py-template-project
+pip3 install savantaudio-client
 ```
 
 ## Downloading a Python Package Template Project
 
-To down load the latest version of the Python Package Template project located in [this GiHub repository](https://github.com/AlexIoannides/py-package-template), execute the following command from the command line:
+To down load the latest version of the Python Package Template project located in [this GiHub repository](https://github.com/akropp/savantaudio-client), execute the following command from the command line:
 
 ```bash
-py-package-template install
+savantaudio-client install
 ```
 
 This will be downloaded to the current directory and will contain the following directory structure:
 
 ```bash
-py-package-tempate/
+savantaudio-client/
  |-- docs/
  |-- |-- build_html/
  |-- |-- build_latex/
@@ -71,11 +71,11 @@ The `entry_points.py` module is referenced in the `setup.py` file via the `entry
 
 ```python
 entry_points={
-    'console_scripts': ['py-package-template=py_pkg.entry_points:main'],
+    'console_scripts': ['savantaudio-client=savantaudio.entry_points:main'],
 }
 ```
 
-It enables the declared entry point - `py_pkg.entry_points.main` -  to be invoked when `py-package-template` is called from the command line. This is what enables the template project to be downloaded programmatically (check the code for the full details). This could easily be extended to start a server (e.g. using Flask), or run any other type of script.
+It enables the declared entry point - `savantaudio.entry_points.main` -  to be invoked when `savantaudio-client` is called from the command line. This is what enables the template project to be downloaded programmatically (check the code for the full details). This could easily be extended to start a server (e.g. using Flask), or run any other type of script.
 
 ### Project Dependencies
 
@@ -157,7 +157,7 @@ The `conftest.py` module is used by PyTest - in this particular instance for loa
 I prefer to use [flake8](http://flake8.pycqa.org/en/latest/) for style guide enforcement. This can be invoked from the command line by running,
 
 ```bash
-pipenv run flake8 py_pkg
+pipenv run flake8 savantaudio
 ```
 
 Flake8 could easily be swapped-out for another tool by using Pipenv as described above.
@@ -167,12 +167,12 @@ Flake8 could easily be swapped-out for another tool by using Pipenv as described
 We have used the Python type annotation framework, together with the [MyPy package](http://mypy-lang.org), to perform static type checks on the codebase. Analogous to any linter or unit testing framework, MyPy can be run from the command line as follows,
 
 ```bash
-pipenv run python -m mypy py_pkg/*.py
+pipenv run python -m mypy savantaudio/*.py
 ```
 
 MyPy options for this project can be defined in the `mypy.ini` file that MyPy will look for by default. For more information on the full set of options, see the [mypy documentation](https://mypy.readthedocs.io/en/stable/config_file.html).
 
-Examples of type annotation and type checking for library development can be found in the `py_pkg.curves.py` module. This should also be cross-referenced with the improvement to readability (and usability) that this has on package documentation.
+Examples of type annotation and type checking for library development can be found in the `savantaudio.curves.py` module. This should also be cross-referenced with the improvement to readability (and usability) that this has on package documentation.
 
 ### Documentation
 
@@ -249,7 +249,7 @@ script:
 
 deploy:
   provider: pypi
-  user: alexioannides
+  user: akropp
   password:
     secure: my-encrypted-pypi-password
   on:

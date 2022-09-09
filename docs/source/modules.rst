@@ -1,8 +1,8 @@
-The py_pkg Package
+The savantaudio Package
 ==================
 
-.. automodule:: py_pkg.curves
+.. automodule:: savantaudio.client
     :members:
 
-.. automodule:: py_pkg.entry_points
+.. automodule:: savantaudio.entry_points
     :members:
