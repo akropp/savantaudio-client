@@ -265,6 +265,9 @@ class Switch:
         else:
             raise ValueError(f'Unknown model: {self._model}')
     
+    async def connect(self):
+        await self.refresh()
+    
     def add_callback(self, callback):
         if self._callback is None:
             self._callback = callback
@@ -276,7 +279,7 @@ class Switch:
             self._callback = _cb
     
     def __str__(self):
-        return f"{{ host: {self._host}, port: {self._port}, fwrev: {self._fwrev}, fpga-rev: {self._fpgarev}, inputs: {len(self._inputs)}, outputs: {len(self._outputs)}, links: {self._links} }}"
+        return f"{{ host: {self._host}, port: {self._port}, fwrev: {self._fwrev}, fpga-rev: {self._fpgarev}, inputs: {self._ninputs}, outputs: {self._noutputs}, links: {self._links} }}"
     
     async def _updated(self, event: str, object):
         if self._callback is not None:
@@ -336,15 +339,23 @@ class Switch:
             self._outputs[num] = Output(self, num, f'Output {num}')
         return self._outputs[num]
 
-    async def connect(self, input: int, output: int):
+    @property
+    def inputs(self):
+        return [input for input in self._inputs if input is not None]
+
+    @property
+    def outputs(self):
+        return [output for output in self._outputs if output is not None]
+
+    async def link(self, input: int, output: int):
         await self.send_command(f'switch-set{output}.{input}')
 
-    async def disconnect(self, input: int, output: int):
+    async def unlink(self, input: int, output: int):
         link = await self.get_link(output)
         if link is not None and link == input:
             await self.send_command(f'switch-set{output}.disconnect')
 
-    async def switch_changed(self, output: int, input: int):
+    async def link_changed(self, output: int, input: int):
         _LOGGER.info(f'switch {output} connected to {input}')
         await self._updated('changed', (output, input))
     
@@ -371,11 +382,11 @@ class Switch:
                 if input == 0:
                     if output in self._links:
                         del self._links[output]
-                        await self.switch_changed(output, input)
+                        await self.link_changed(output, input)
                 else:
                     if output not in self._links or self._links[output] != input:
                         self._links[output] = input
-                        await self.switch_changed(output, input)
+                        await self.link_changed(output, input)
             else:
                 raise ValueError(f'got unknown response: {value}')
         return True
