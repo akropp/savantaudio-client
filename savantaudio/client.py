@@ -363,13 +363,17 @@ class Switch:
     def outputs(self):
         return [output for output in self._outputs if output is not None]
 
-    async def link(self, input: int, output: int):
+    async def link(self, output: int, input: int):
         await self.send_command(f'switch-set{output}.{input}')
 
-    async def unlink(self, input: int, output: int):
-        link = await self.get_link(output)
-        if link is not None and link == input:
+    async def unlink(self, output: int, input: int = None):
+        if input is None:
+            #unlink no matter what
             await self.send_command(f'switch-set{output}.disconnect')
+        else:
+            link = await self.get_link(output)
+            if link is not None and link == input:
+                await self.send_command(f'switch-set{output}.disconnect')
 
     async def link_changed(self, output: int, input: int):
         _LOGGER.info(f'switch {output} connected to {input}')

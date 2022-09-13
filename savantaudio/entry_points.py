@@ -52,7 +52,7 @@ def main() -> None:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop.run_until_complete(switch.connect())
-            loop.run_until_complete(switch.unlink(int(argv[4]), int(argv[5])))
+            loop.run_until_complete(switch.unlink(int(argv[4]), int(argv[5]) if len(argv) > 5 else None))
             print_links(switch)
         elif user_cmd == 'set-volume':
             switch = client.Switch(host=argv[2], port=argv[3])
