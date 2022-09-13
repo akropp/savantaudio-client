@@ -265,6 +265,22 @@ class Switch:
         else:
             raise ValueError(f'Unknown model: {self._model}')
     
+    @property
+    def host(self):
+        return self._host
+    
+    @property
+    def port(self):
+        return self._port
+    
+    @property
+    def fwrev(self):
+        return self._fwrev
+    
+    @property
+    def fpgarev(self):
+        return self._fpgarev
+    
     async def connect(self):
         await self.refresh()
     
