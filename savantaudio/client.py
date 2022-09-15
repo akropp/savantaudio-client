@@ -18,6 +18,10 @@ import datetime
 
 _LOGGER = logging.getLogger(__name__)
 
+class Model(Enum):
+    SSA_3220 = 'SSA-3200'
+    SSA_3220D = 'SSA-3220D'
+
 class Connection:
     def __init__(self, host: str, port: int):
         self._host = host
@@ -218,6 +222,8 @@ class Output:
             await self._switch.send_command(f'aoutput-delayboth-get{self._number}')
     
     async def set_volume(self, vol: int):
+        if vol < -38 or vol > 0:
+            raise ValueError(f'Invalid volume level: {vol}dB')
         await self._switch.send_command(f'aoutput-vol-set{self._number}:{vol}dB')
         pass
     
@@ -280,6 +286,10 @@ class Switch:
     @property
     def fpgarev(self):
         return self._fpgarev
+    
+    @property
+    def model(self):
+        return self._model
     
     async def connect(self):
         await self.refresh()
