@@ -343,7 +343,7 @@ class Switch:
             m = re.search('statusAPI1.0; (.*)', reply)
             if m:
                 for part in m.group(1).split(';'):
-                    part = part.trim()
+                    part = part.strip()
                     if part.startswith('pn'):
                         self._attributes['pn'] = part
                     elif part.startswith('sn'):
