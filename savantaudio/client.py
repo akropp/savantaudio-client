@@ -9,6 +9,7 @@ import abc
 import asyncio
 from dataclasses import dataclass
 from genericpath import exists
+from operator import truediv
 from typing import Dict, Optional, Sequence, Tuple, TypeVar
 from enum import Enum
 from xmlrpc.client import Boolean
@@ -122,7 +123,7 @@ class Input:
        
     async def updated(self):
         _LOGGER.info(f'Output {self._number} Updated: {self}')
-        await self._switch._updated("updated", self)
+        await self._switch._updated("input-updated", self)
 
     async def parse(self, key: str, value: str):
         if key == 'trim':
@@ -194,7 +195,7 @@ class Output:
    
     async def updated(self):
         _LOGGER.info(f'Output {self._number} Updated: {self}')
-        await self._switch._updated("updated", self)
+        await self._switch._updated("output-updated", self)
 
     async def parse(self, key: str, value: str):
         _LOGGER.debug(f"Output.parse({key} => {value}")
@@ -262,8 +263,8 @@ class Switch:
         self._links = {} # output -> input
         self._callback = None
         self._connection = Connection(self._host, self._port)
-        self._fwrev = None
-        self._fpgarev = None
+        self._attributes = {}
+        self._ready = False
         self._model = model
         if self._model == 'SSA-3220' or self._model == 'SSA-3220D':
             self._ninputs = 32
@@ -280,12 +281,8 @@ class Switch:
         return self._port
     
     @property
-    def fwrev(self):
-        return self._fwrev
-    
-    @property
-    def fpgarev(self):
-        return self._fpgarev
+    def attributes(self):
+        return self._attributes
     
     @property
     def model(self):
@@ -335,12 +332,33 @@ class Switch:
         async for reply in self._connection.send('fwrev'):
             m = re.search('fwrevPrimary: (.*)', reply)
             if m:
-                self._fwrev = m.group(1)
+                self._attributes['fwrev'] = m.group(1)
 
         async for reply in self._connection.send('fpga-rev'):
             m = re.search('fpga-rev(.*)', reply)
             if m:
-                self._fpgarev = m.group(1)
+                self._attributes['fpgarev'] = m.group(1)
+        
+        async for reply in self._connection.send('status'):
+            m = re.search('statusAPI1.0; (.*)', reply)
+            if m:
+                for part in m.group(1).split(';'):
+                    part = part.trim()
+                    if part.startswith('pn'):
+                        self._attributes['pn'] = part
+                    elif part.startswith('sn'):
+                        self._attributes['sn'] = part
+                    elif part.startswith('rev'):
+                        self._attributes['rev'] = part
+                    elif part == 'ready=yes':
+                        self._ready = True
+                    elif part == 'ready=no':
+                        self._ready = False
+                    elif part == 'Standalone-Audio-Switch-With-Delay':
+                        self._model = Model.SSA_3220D
+                    elif part == 'Standalone-Audio-Switch':
+                        self._model = Model.SSA_3220
+
 
         for c in range(1, self._noutputs):
             await self.refresh_link(c)
@@ -387,7 +405,7 @@ class Switch:
 
     async def link_changed(self, output: int, input: int):
         _LOGGER.info(f'switch {output} connected to {input}')
-        await self._updated('changed', (output, input))
+        await self._updated('link-changed', (output, input))
     
     @property
     def links(self):
