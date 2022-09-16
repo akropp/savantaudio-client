@@ -28,12 +28,14 @@ class Connection:
         self._host = host
         self._port = port
         self._writer = None
+        self._lock = asyncio.Lock()
     
     async def connect(self):
-        if self._writer is None:
-            _LOGGER.debug(f'Opening Connection to {self._host}:{self._port}')
-            self._reader, self._writer = await asyncio.open_connection(self._host, self._port)
-            self._ts = datetime.datetime.now()
+        async with self._lock:
+            if self._writer is None:
+                _LOGGER.debug(f'Opening Connection to {self._host}:{self._port}')
+                self._reader, self._writer = await asyncio.open_connection(self._host, self._port)
+                self._ts = datetime.datetime.now()
 
     def reader(self):
         return self._reader
@@ -43,8 +45,7 @@ class Connection:
         return self._writer
     
     async def send(self, command: str) -> str:
-        lock = asyncio.Lock()
-        async with lock:
+        async with self._lock:
             while True:
                 try:
                     if self._writer is None:
@@ -79,14 +80,15 @@ class Connection:
         return self._writer.is_closing()
     
     async def close(self):
-        if self._writer is not None:
-            _LOGGER.debug(f'Closing Connection to {self._host}:{self._port}')
-            try:
-                self._writer.close()
-                await self._writer.wait_closed()
-            except:
-                pass #ignore
-            self._writer = None
+        async with self._lock:
+            if self._writer is not None:
+                _LOGGER.debug(f'Closing Connection to {self._host}:{self._port}')
+                try:
+                    self._writer.close()
+                    await self._writer.wait_closed()
+                except:
+                    pass #ignore
+                self._writer = None
 
 
 class Input:
@@ -302,7 +304,7 @@ class Switch:
             self._callback = _cb
     
     def __str__(self):
-        return f"{{ host: {self._host}, port: {self._port}, fwrev: {self._fwrev}, fpga-rev: {self._fpgarev}, inputs: {self._ninputs}, outputs: {self._noutputs}, links: {self._links} }}"
+        return f"{{ host: {self._host}, port: {self._port}, attributes: {self._attributes}, inputs: {self._ninputs}, outputs: {self._noutputs}, links: {self._links} }}"
     
     async def _updated(self, event: str, object):
         if self._callback is not None:
@@ -330,7 +332,7 @@ class Switch:
 
     async def refresh(self):
         async for reply in self._connection.send('fwrev'):
-            m = re.search('fwrevPrimary: (.*)', reply)
+            m = re.search('fwrevPrimary; (.*)', reply)
             if m:
                 self._attributes['fwrev'] = m.group(1)
 
