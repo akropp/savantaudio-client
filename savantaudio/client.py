@@ -217,11 +217,12 @@ class Output:
         return True
 
     async def refresh(self):
+        _LOGGER.debug("Output[%d].refresh", self._number)
         await self._switch.send_command(f'aoutput-vol-get{self._number}')
         await self._switch.send_command(f'aoutput-conf-get{self._number}')
         await self._switch.send_command(f'aoutput-mute-get{self._number}')
         await self._switch.send_command(f'aoutput-mono-get{self._number}')
-        if self._number < 17 and self._switch._model == 'SSA-3220D':
+        if self._number < 17 and self._switch._model == Model.SSA_3220D:
             await self._switch.send_command(f'aoutput-delayboth-get{self._number}')
     
     async def set_volume(self, vol: int):
@@ -291,6 +292,7 @@ class Switch:
         return self._model
     
     async def connect(self):
+        _LOGGER.debug("Connecting to Savant Audio Switch %s:%d", self._host, self._port)
         await self.refresh()
     
     def add_callback(self, callback):
@@ -331,6 +333,7 @@ class Switch:
             return None
 
     async def refresh(self):
+        _LOGGER.debug("Switch.refresh %s:%d", self._host, self._port)
         async for reply in self._connection.send('fwrev'):
             m = re.search('fwrevPrimary; (.*)', reply)
             if m:
