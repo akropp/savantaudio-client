@@ -32,10 +32,27 @@ class Connection:
     
     async def connect(self):
         async with self._lock:
-            if self._writer is None:
-                _LOGGER.debug(f'Opening Connection to {self._host}:{self._port}')
-                self._reader, self._writer = await asyncio.open_connection(self._host, self._port)
-                self._ts = datetime.datetime.now()
+            await self._connect()
+
+    async def _connect(self):
+        if self._writer is None:
+            _LOGGER.debug(f'Opening Connection to {self._host}:{self._port}')
+            self._reader, self._writer = await asyncio.open_connection(self._host, self._port)
+            self._ts = datetime.datetime.now()
+
+    async def close(self):
+        async with self._lock:
+            await self._close()
+
+    async def _close(self):
+        if self._writer is not None:
+            _LOGGER.debug(f'Closing Connection to {self._host}:{self._port}')
+            try:
+                self._writer.close()
+                await self._writer.wait_closed()
+            except:
+                pass #ignore
+            self._writer = None
 
     def reader(self):
         return self._reader
@@ -45,11 +62,11 @@ class Connection:
         return self._writer
     
     async def send(self, command: str) -> str:
-        async with self._lock:
-            while True:
-                try:
+        while True:
+            try:
+                async with self._lock:
                     if self._writer is None:
-                        await self.connect()
+                        await self._connect() # already holding lock
                     self._ts = datetime.datetime.now()
                     self._writer.write(command.encode("ASCII") + b"\r\n")
                     await self._writer.drain()
@@ -59,7 +76,7 @@ class Connection:
                         yield response
                     else:
                         _LOGGER.debug(f'Failed to get response to {command}. Retrying')
-                        await self.close()
+                        await self._close() # already holding lock
                         continue
                     while True:
                         data = await self._reader.readline()
@@ -68,27 +85,16 @@ class Connection:
                             yield response
                         else:
                             return
-                except ConnectionResetError as cre:
-                    _LOGGER.debug(f'Connection reset: {cre}')
-                    await self.close()
-                except Exception as ex:
-                    _LOGGER.exception(f'Connection got exception: {ex}', exc_info=ex)
-                    await self.close()
-                    raise
+            except ConnectionResetError as cre:
+                _LOGGER.debug(f'Connection reset: {cre}')
+                await self.close()
+            except Exception as ex:
+                _LOGGER.exception(f'Connection got exception: {ex}', exc_info=ex)
+                await self.close()
+                raise
     
     def check(self):
         return self._writer.is_closing()
-    
-    async def close(self):
-        async with self._lock:
-            if self._writer is not None:
-                _LOGGER.debug(f'Closing Connection to {self._host}:{self._port}')
-                try:
-                    self._writer.close()
-                    await self._writer.wait_closed()
-                except:
-                    pass #ignore
-                self._writer = None
 
 
 class Input:
