@@ -261,12 +261,9 @@ class Switch:
 
     """
 
-    def __init__(self, host: str, port: int, username: str = None, password: str = None, timeout: float = 10.0, model = 'SSA-3220') -> None:
+    def __init__(self, host: str, port: int, model = Model.SSA_3220D) -> None:
         self._host = host
         self._port = port
-        self._username = username
-        self._password = password    
-        self._timeout = timeout
         self._inputs = []
         self._outputs = []
         self._links = {} # output -> input
