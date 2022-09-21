@@ -272,7 +272,7 @@ class Switch:
         self._attributes = {}
         self._ready = False
         self._model = model
-        if self._model == 'SSA-3220' or self._model == 'SSA-3220D':
+        if self._model == Model.SSA_3220 or self._model == Model.SSA_3220D:
             self._ninputs = 32
             self._noutputs = 20
         else:
