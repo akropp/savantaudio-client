@@ -206,16 +206,16 @@ class Output:
         await self._switch._updated("output-updated", self)
 
     async def parse(self, key: str, value: str):
-        _LOGGER.debug(f"Output.parse({key} => {value}")
+        _LOGGER.debug(f"Output.parse({key} => {value})")
         if key == 'vol':
             self._volume = int(value[:-2])
             self._valid = True
         elif key == 'mute':
-            self._mute = value == 'on'
+            self._mute = (value == 'on')
         elif key == 'conf':
-            self._passthru = value == 'passthru'
+            self._passthru = (value == 'passthru')
         elif key == 'mono':
-            self._mute = value == 'on'
+            self._stereo = (value == 'off')
         elif key == 'delayleft':
             self._delay[0] = int(value[:-2])
         elif key == 'delayright':
